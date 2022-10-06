@@ -42,5 +42,24 @@ namespace ConsoleApp
         {
             return Items.ToList();
         }
+
+        public bool Remove(string name)
+        {
+            if(!Items.Contains(name))
+                return false;
+
+            Items.Remove(name);
+            return true;
+        }
+
+        public void Clear()
+        {
+            Items.Clear();
+        }
+
+        public int Count()
+        {
+            return Items.Count();
+        }
     }
 }
