@@ -23,17 +23,20 @@ namespace ConsoleApp
                 throw new ArgumentNullException(nameof(name));
             if(string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Roślina musi posiadać nazwę!", nameof(name));
-            if (Items.Contains(name))
-                throw new ArgumentException("Roślina już istnieje w ogrodzie", nameof(name));
 
             if(Items.Count() >= Size)
                 return false;
+
+            if (Items.Contains(name))
+            {
+                name = name + (Items.Count(x => x.StartsWith(name)) + 1);
+            }
 
             Items.Add(name);
             return true;
         }
 
-        public ICollection<string> GetPalnts()
+        public ICollection<string> GetPlants()
         {
             return Items.ToList();
         }
