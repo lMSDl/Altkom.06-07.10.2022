@@ -6,8 +6,63 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp.Test.xUnit
 {
-    public class GardenTest
+    public class GardenTest : IDisposable
     {
+        #region BAD_PRACTISE
+        private Garden Garden { get; }
+        //odpowiedniek Setup w xUnit
+        public GardenTest()
+        {
+            Garden = new Garden(1);
+        }
+
+        //odpowiedniek TearDown w xUnit
+        public void Dispose()
+        {
+        }
+        #endregion BAD_PRACTISE
+
+        // metody konstrukcyjne są bardziej preferowane od SetUp i TearDown
+        private static Garden GetNonZeroSizeGarden()
+        {
+            const int NON_ZERO_SIZE = 1;
+            var garden = new Garden(NON_ZERO_SIZE);
+            return garden;
+        }
+        private static Garden GetInsignificantSizeGarden()
+        {
+            const int INSIGNIFICANT_SIZE = 0;
+            var garden = new Garden(INSIGNIFICANT_SIZE);
+            return garden;
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(int.MinValue)]
+        public void Garden_InvalidSize_Exception(int invalidSize)
+        {
+            //Act
+            Action result = () => new Garden(invalidSize);
+
+            //Assert
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(result);
+            Assert.Equal("size", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(int.MaxValue)]
+        public void Garden_ValidSize_SizeInit(int validSize)
+        {
+            //Act
+            var garden = new Garden(validSize);
+
+            //Assert
+            Assert.Equal(validSize, garden.Size);
+        }
+
+
         [Fact]
         //Plant_<scenario&exprectedResultDescription>
         //public void Plant_GivesTrueWhenProvidedValidName
@@ -16,9 +71,8 @@ namespace ConsoleApp.Test.xUnit
         public void Plant_ValidName_True()
         {
             // Arrange
-            const int MINIMAL_VALID_SIZE = 1;
+            Garden garden = GetNonZeroSizeGarden();
             const string VALID_NAME = "a";
-            var garden = new Garden(MINIMAL_VALID_SIZE);
 
             // Act
             var result = garden.Plant(VALID_NAME);
@@ -31,8 +85,7 @@ namespace ConsoleApp.Test.xUnit
         public void Plant_OverflowGarden_False()
         {
             // Arrange
-            const int NON_ZERO_SIZE = 1;
-            var garden = new Garden(NON_ZERO_SIZE);
+            Garden garden = GetNonZeroSizeGarden();
             const string VALID_PLANT_NAME_1 = "a";
             const string VALID_PLANT_NAME_2 = "b";
             garden.Plant(VALID_PLANT_NAME_1);
@@ -44,13 +97,28 @@ namespace ConsoleApp.Test.xUnit
             Assert.False(result);
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Plant_InvalidName_ArgumentException(string invalidName)
+        {
+            //Arrange
+            Garden garden = GetInsignificantSizeGarden();
 
-        [Fact]
+            //Act
+            Action result = () => garden.Plant(invalidName);
+
+            //Assert
+            var argumentNullException = Assert.ThrowsAny<ArgumentException>(result);
+            Assert.Equal("name", argumentNullException.ParamName);
+        }
+
+        [Fact(Skip = "Replaced by Plant_InvalidName_ArgumentException")]
         public void Plant_NullName_ArgumentNullException()
         {
             //Arrange
-            const int INSIGNIFICANT_SIZE = 0;
-            var garden = new Garden(INSIGNIFICANT_SIZE);
+            Garden garden = GetInsignificantSizeGarden();
             const string? NULL_NAME = null;
 
             //Act
@@ -62,12 +130,11 @@ namespace ConsoleApp.Test.xUnit
             Assert.Equal("Name", argumentNullException.ParamName, ignoreCase: true);
         }
 
-        [Fact]
+        [Fact(Skip = "Replaced by Plant_InvalidName_ArgumentException")]
         public void Plant_WhiteSpaceName_ArgumentException()
         {
             //Arrange
-            const int INSIGNIFICANT_SIZE = 0;
-            var garden = new Garden(INSIGNIFICANT_SIZE);
+            Garden garden = GetInsignificantSizeGarden();
             const string WHITE_SPACE_NAME = " ";
 
             //Act
@@ -80,6 +147,7 @@ namespace ConsoleApp.Test.xUnit
             Assert.Equal("name", argumentException.ParamName);
             Assert.Contains("Roślina musi posiadać nazwę!", argumentException.Message);
         }
+
 
         [Fact]
         public void Plant_ExistingName_ChangedNameOnList()
@@ -101,8 +169,7 @@ namespace ConsoleApp.Test.xUnit
         public void Plant_ValidName_AddedToGarden()
         {
             //Arrange
-            const int MINIMAL_VALID_SIZE = 1;
-            var garden = new Garden(MINIMAL_VALID_SIZE);
+            Garden garden = GetNonZeroSizeGarden();
             const string VALID_NAME = "a";
 
             //Act
@@ -111,6 +178,7 @@ namespace ConsoleApp.Test.xUnit
             //Assert
             Assert.Contains(VALID_NAME, garden.GetPlants());
         }
+
 
         [Fact]
         public void GetPlants_CopyOfPlantsCollection()
@@ -126,5 +194,6 @@ namespace ConsoleApp.Test.xUnit
             //Assert
             Assert.NotSame(result1, result2);
         }
+
     }
 }

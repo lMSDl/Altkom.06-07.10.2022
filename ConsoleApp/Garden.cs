@@ -13,6 +13,8 @@ namespace ConsoleApp
 
         public Garden(int size)
         {
+            if(size < 0)
+                throw new ArgumentOutOfRangeException("size");
             Size = size;
             Items = new List<string>();
         }
