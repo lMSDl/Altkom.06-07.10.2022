@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoFixture;
 using FluentAssertions;
 using FluentAssertions.Execution;
 
@@ -32,7 +33,8 @@ namespace ConsoleApp.Test.xUnit
         {
             //Arrange
             var logger = new Logger();
-            const string ANY_MESSAGE = "a";
+            var fixture = new Fixture();
+            string ANY_MESSAGE = fixture.Create<string>();
             Logger.LoggerEventArgs? eventArgs = null;
             object? eventSender = null;
 

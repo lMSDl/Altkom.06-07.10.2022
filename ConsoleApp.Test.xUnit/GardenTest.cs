@@ -1,4 +1,7 @@
-﻿using System;
+﻿using AutoFixture;
+using FluentAssertions;
+using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +29,8 @@ namespace ConsoleApp.Test.xUnit
         private static Garden GetNonZeroSizeGarden()
         {
             const int NON_ZERO_SIZE = 1;
-            var garden = new Garden(NON_ZERO_SIZE);
+            var loggerStub = new Mock<ILogger>();
+            var garden = new Garden(NON_ZERO_SIZE, loggerStub.Object);
             return garden;
         }
         private static Garden GetInsignificantSizeGarden()
@@ -195,5 +199,64 @@ namespace ConsoleApp.Test.xUnit
             Assert.NotSame(result1, result2);
         }
 
+        [Fact]
+        public void Plant_ValidName_MessageLogged()
+        {
+            //Arrange
+            const int MINIMAL_VALID_SIZE = 1;
+            var loggerMock = new Mock<ILogger>();
+            loggerMock.Setup(x => x.Log(It.IsAny<string>())).Verifiable();
+
+            var garden = new Garden(MINIMAL_VALID_SIZE, loggerMock.Object);
+            var plantName = new Fixture().Create<string>();
+
+            //Act
+            garden.Plant(plantName);
+
+            //Assert
+            loggerMock.Verify();
+        }
+
+        [Fact]
+        public void Plant_DuplicatedName_MessageLogged()
+        {
+            //Arrange
+            const int MINIMAL_VALID_SIZE = 2;
+            var loggerMock = new Mock<ILogger>();
+
+            var garden = new Garden(MINIMAL_VALID_SIZE, loggerMock.Object);
+            var plantName = new Fixture().Create<string>();
+            garden.Plant(plantName);
+
+            //Act
+            garden.Plant(plantName);
+
+            //Assert
+            loggerMock.Verify(x => x.Log(It.Is<string>(x => x.Contains(plantName))), Times.Exactly(3));
+        }
+
+
+        [Fact]
+        public void ShowLastLog_LastLog()
+        {
+            //Arrange
+            var fixture = new Fixture();
+            var plantName1 = fixture.Create<string>();
+            var plantName2 = fixture.Create<string>();
+            var logger = new Mock<ILogger>();
+            logger.Setup(x => x.GetLogsAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .ReturnsAsync($"{plantName1}\n{plantName2}");
+
+            const int MINIMAL_VALID_SIZE = 2;
+            var garden = new Garden(1, logger.Object);
+            garden.Plant(plantName1);
+            garden.Plant(plantName2);
+
+            //Act
+            var result = garden.ShowLastLog();
+
+            //Assert
+            result.Should().Be(plantName2);
+        }
     }
 }
