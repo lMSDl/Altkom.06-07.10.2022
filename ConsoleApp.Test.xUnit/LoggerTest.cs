@@ -77,7 +77,7 @@ namespace ConsoleApp.Test.xUnit
                 .WithArgs<Logger.LoggerEventArgs>(x => x.Message == ANY_MESSAGE);
         }
 
-        [F]
+        [Fact]
         public void GetLogsAsync_DateRage_LoggedMessages()
         {
             //Arrange
