@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsoleApp.Test.xUnit
+namespace ConsoleApp.Test.NUnit
 {
     [TestFixture]
     public class FizzBuzzTest
