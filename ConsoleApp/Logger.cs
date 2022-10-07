@@ -20,11 +20,15 @@ namespace ConsoleApp
             MessageLogged?.Invoke(this, new LoggerEventArgs(dateTime, message));
         }
 
-        public string GetLogs(DateTime from, DateTime to)
+        public Task<string> GetLogsAsync(DateTime from, DateTime to)
         {
-            return string.Join("\n",
-                _logs.Where(x => x.Key >= from).Where(x => x.Key <= to)
-                .Select(x => $"{x.Key.ToShortDateString} {x.Key.ToShortTimeString}: {x.Value}"));
+            return Task.Run(() =>
+            {
+                throw new Exception();
+                return string.Join("\n",
+                 _logs.Where(x => x.Key >= from).Where(x => x.Key <= to)
+                 .Select(x => $"{x.Key.ToShortDateString()} {x.Key.ToShortTimeString()}: {x.Value}"));
+            });
         }
 
         public class LoggerEventArgs : EventArgs
